@@ -2,7 +2,7 @@
     <div id="app" >
         <div>Hello world!</div>
         <Minefield style="position: absolute; top: 20px; bottom: 20px; left: 20px; right:20px; "
-                   ref="ui" :board="field"/>
+                   ref="ui" :board="field" @click="onClick"/>
     </div>
 </template>
 
@@ -17,8 +17,11 @@ import Minefield from './Minefield.vue';
 })
 export default class App extends Vue {
 
-    field: Array<Array<string>> = [['x', 'x'], ['x', 'y']];
+    field: Array<Array<string>> = [['1', '1'], [' m', '1']];
 
+    onClick (e: { x: number, y: number }) {
+        alert("Click event: " + e.x + ", " + e.y);
+    }
 }
 </script>
 
