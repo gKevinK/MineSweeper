@@ -17,7 +17,11 @@ import Minefield from './Minefield.vue';
 })
 export default class App extends Vue {
 
-    field: Array<Array<string>> = [['1', '1'], [' m', '1']];
+    private field: Array<Array<string>> = [['1', '1'], [' m', '1']];
+
+    constructor () {
+
+    }
 
     onClick (e: { x: number, y: number }) {
         alert("Click event: " + e.x + ", " + e.y);
