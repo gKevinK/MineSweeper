@@ -2,8 +2,8 @@
 <div class="root">
     <div v-for="(row, x) in board" :key="row.id" class="row">
         <div v-for="(cell, y) in row" :key="cell.id" class="square"
-             :class="{ cover: cell[0] === ' ' }" @click="onClick(x, y)">
-            {{ cell }}
+             :class="[cell[0] === ' ' ? 'cover ' + 'd_' + cell[1] : 'd_' + cell]" @click="onClick(x, y)">
+            {{ content(cell) }}
         </div>
     </div>
 </div>
@@ -19,6 +19,14 @@ export default class MineSweeper extends Vue {
     @Emit('click')
     onClick (x: number, y: number) {
         return { x: x, y: y };
+    }
+
+    content (c: string) {
+        if (c[0] === '0') return '';
+        let char = c[0] === ' ' ? c[1] : c[0];
+        if (char === 'B') return '*';
+        if (char === 'F') return 'P';
+        return char;
     }
 }
 </script>
@@ -44,7 +52,54 @@ export default class MineSweeper extends Vue {
 }
 
 .cover {
-    background: white;
+    background: #EEE;
+}
+
+.d_B {
+    background: red;
+}
+
+/* .d_0 {
+} */
+
+.d_1 {
+    color: blue;
+}
+
+.d_2 {
+    color: darkgreen;
+}
+
+.d_3 {
+    color: crimson;
+}
+
+.d_4 {
+    color: darkblue;
+}
+
+.d_5 {
+    color: brown;
+}
+
+.d_6 {
+    color: green;
+}
+
+.d_7 {
+    color: brown;
+}
+
+.d_8 {
+    color: black;
+}
+
+.d_F {
+    color: red;
+}
+
+.d_M {
+    color: darkblue;
 }
 
 </style>
