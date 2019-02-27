@@ -2,7 +2,10 @@
 <div class="root">
     <div v-for="(row, x) in board" :key="row.id" class="row">
         <div v-for="(cell, y) in row" :key="cell.id" class="square"
-             :class="[cell[0] === ' ' ? 'cover ' + 'd_' + cell[1] : 'd_' + cell]" @click="onClick(x, y)">
+             :class="[ cell[0] === ' ' ? 'cover' : '',
+                       cell[0] === ' ' && cell[1] && cell[1] !== ' ' ? 'd_' + cell[1] : '',
+                       cell[0] !== ' ' ? 'd_' + cell[0] : '' ]"
+             @click="onClick(x, y)" @contextmenu.prevent="onRClick(x, y)">
             {{ content(cell) }}
         </div>
     </div>
@@ -21,11 +24,17 @@ export default class MineSweeper extends Vue {
         return { x: x, y: y };
     }
 
+    @Emit('rclick')
+    onRClick (x: number, y: number) {
+        return { x: x, y: y };
+    }
+
     content (c: string) {
-        if (c[0] === '0') return '';
+        if (c[0] === '0') return ' ';
         let char = c[0] === ' ' ? c[1] : c[0];
-        if (char === 'B') return '*';
-        if (char === 'F') return 'P';
+        // if (char === 'B') return '*';
+        // if (char === 'F') return 'P';
+        if (char === 'M') return '?';
         return char;
     }
 }
@@ -35,6 +44,10 @@ export default class MineSweeper extends Vue {
 .root {
     position: absolute;
     cursor: default;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    overflow: auto;
 }
 
 .row {
@@ -44,15 +57,19 @@ export default class MineSweeper extends Vue {
 
 .square {
     border: solid 1px darkgray;
-    /* position: relative; */
-    /* display: inline-block; */
+    box-sizing: border-box;
+    position: relative;
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    min-height: 20px;
     background: lightgray;
 }
 
 .cover {
     background: #EEE;
+    border: outset 3px;
+    border-color: #CCCCCC #EFEFEF;
 }
 
 .d_B {
