@@ -1,7 +1,8 @@
 <template>
     <div id="app" >
-        <div>Hello world!</div>
-        <button @click="clear">Clear</button>
+        <div class="menu">
+            <button @click="clear" class="btn">Clear</button>
+        </div>
         <Minefield style="position: absolute; top: 80px; bottom: 20px; left: 20px; right:20px; "
                    ref="ui" :board="field" @click="onClick" @rclick="onRClick"/>
     </div>
@@ -40,6 +41,7 @@ export default class App extends Vue {
             console.log(this.field);
             this.status = 1;
         }
+        if (this.status == 2) return;
         if (this.field[e.x][e.y] == "  B") {
             this.field[e.x].splice(e.y, 1, "B");
             this.status = 2;
@@ -121,4 +123,26 @@ export default class App extends Vue {
     color: #2c3e50;
     height: 100%;
 }
+
+.menu {
+    /* height: 48px; */
+    padding: 8px;
+    border: 1px solid lightgray;
+    display: flex;
+    justify-content: center;
+}
+
+.btn {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+    outline: none;
+}
+
+.btn:hover {
+    background: #ddeeff;
+    border: 1px solid #bbddff;
+}
+
 </style>

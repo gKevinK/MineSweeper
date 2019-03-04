@@ -30,10 +30,8 @@ export default class MineSweeper extends Vue {
     }
 
     content (c: string) {
-        if (c[0] === '0') return ' ';
         let char = c[0] === ' ' ? c[1] : c[0];
-        // if (char === 'B') return '*';
-        // if (char === 'F') return 'P';
+        if (['B', 'F', '0'].indexOf(char) != -1) return ' ';
         if (char === 'M') return '?';
         return char;
     }
@@ -74,6 +72,8 @@ export default class MineSweeper extends Vue {
 
 .d_B {
     background: red;
+    background-image: url('../public/mine.svg');
+    background-position: center;
 }
 
 /* .d_0 {
@@ -113,6 +113,8 @@ export default class MineSweeper extends Vue {
 
 .d_F {
     color: red;
+    background-image: url('../public/flag.svg');
+    background-position: center center;
 }
 
 .d_M {
