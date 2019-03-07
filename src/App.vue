@@ -1,7 +1,13 @@
 <template>
     <div id="app" >
         <div class="menu">
-            <button @click="clear" class="btn">Clear</button>
+            <input v-if="status == 0" class="input_num" v-model.number="input_x">
+            <input v-if="status == 0" class="input_num" v-model.number="input_y">
+            <input v-if="status == 0" class="input_num" v-model.number="input_mine">
+
+            <div v-if="status == 2" class="result" style="background: red"></div>
+            <div v-if="status == 3" class="result" style="background: green"></div>
+            <button @click="ok" class="btn" style="margin-left: 16px">OK</button>
         </div>
         <Minefield style="position: absolute; top: 80px; bottom: 20px; left: 20px; right:20px; "
                    ref="ui" :board="field" @click="onClick" @rclick="onRClick"/>
@@ -10,7 +16,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import Minefield from './Minefield.vue';
+import Minefield, { Content } from './Minefield.vue';
 
 @Component({
     components: {
@@ -19,66 +25,80 @@ import Minefield from './Minefield.vue';
 })
 export default class App extends Vue {
 
-    status: number = 0;
-    private field: Array<Array<string>> = [];
+    private status: number = 0;
+    private field: Array<Array<{ content: Content, mine: boolean }>> = [];
+    private input_x: number = 9;
+    private input_y: number = 9;
+    private input_mine: number = 10;
     private x: number = 9;
     private y: number = 9;
     private mine: number = 10;
 
-    constructor () {
-        super();
-        this.field = [...Array(this.x)].map(r => [...Array(this.y)].fill(" "));
+    mounted () {
+        this.ok();
     }
 
-    clear () {
+    ok () {
+        if (this.status == 0) {
+            this.x = this.input_x;
+            this.y = this.input_y;
+            this.mine = this.input_mine;
+        }
         this.status = 0;
-        this.field = [...Array(this.x)].map(r => [...Array(this.y)].fill(" "));
+        this.field = [...Array(this.x)].map(r => [...Array(this.y)].map(
+                     c => ({ content: <Content>" ", mine: false }) ));
+    }
+
+    check () {
+        let ok = !this.field.some(r => r.some(c => !c.mine && [ " ", "F", "M" ].indexOf(c.content) != -1));
+        if (ok) {
+            this.status = 3;
+        }
     }
 
     onClick (e: { x: number, y: number }) {
         if (this.status == 0) {
             this.generate(e);
-            console.log(this.field);
+            // console.log(this.field);
             this.status = 1;
         }
-        if (this.status == 2) return;
-        if (this.field[e.x][e.y] == "  B") {
-            this.field[e.x].splice(e.y, 1, "B");
+        if (this.status >= 2) return;
+        if (this.field[e.x][e.y].mine) {
+            this.field.map(r => r.map(c => c.content = c.mine ? "C" : c.content));
+            this.field[e.x][e.y].content = "B";
             this.status = 2;
             return;
         }
         let queue = [e];
         while (queue.length) {
             let c = queue.shift()!;
-            if (this.field[c.x][c.y] != " ")
+            if (this.field[c.x][c.y].content != " ")
                 continue;
             let adj = this.adjacency(c);
-            this.field[c.x].splice(c.y, 1, adj.toString());
+            this.field[c.x][c.y].content = <Content>adj.toString();
             if (adj == 0) {
                 for (let x2 = c.x - 1; x2 <= c.x + 1; x2++)
                     for (let y2 = c.y - 1; y2 <= c.y + 1; y2++) {
                         if (!this.valid(x2, y2) || (x2 == c.x && y2 == c.y))
                             continue;
-                        if (this.field[x2][y2] == " ")
+                        if (this.field[x2][y2].content == " ")
                             queue.push({ x: x2, y: y2 });
                 }
             }
         }
+        this.check();
     }
 
     onRClick (e: { x: number, y: number }) {
         if (this.status != 1) return;
         let cell = this.field[e.x][e.y];
-        if (cell[0] != " ") return;
-        if (cell == " ") cell += " ";
-        const list = [ " ", "F", "M" ];
-        cell = cell[0] + list[(list.indexOf(cell[1]) + 1) % 3] + cell.substr(2);
-        this.field[e.x].splice(e.y, 1, cell);
+        if ([ " ", "F", "M" ].indexOf(cell.content) == -1) return;
+        const list: Content[] = [ " ", "F", "M" ];
+        cell.content = list[(list.indexOf(cell.content) + 1) % 3];
     }
 
     private generate(e: { x: number, y: number }) {
         const total = this.x * this.y - 1, mine = this.mine;
-        let field = [...Array(this.x)].map(r => [...Array(this.y)].fill(" "));
         let res: number[] = [];
         for (let i = 0; i < total; i++) {
             if (res.length < mine)
@@ -88,11 +108,10 @@ export default class App extends Vue {
         }
         for (let i of res) {
             const x = Math.floor(i / this.y), y = i % this.y;
-            field[x][y] = "  B";
+            this.field[x][y].mine = true;
         }
-        field[this.x - 1][this.y - 1] = field[e.x][e.y];
-        field[e.x][e.y] = " ";
-        this.field = field;
+        this.field[this.x - 1][this.y - 1].mine = this.field[e.x][e.y].mine;
+        this.field[e.x][e.y].mine = false;
     }
 
     private valid (x: number, y: number ) {
@@ -105,7 +124,7 @@ export default class App extends Vue {
         for (let i = x - 1; i <= x + 1; i++) {
             for (let j = y - 1; j <= y + 1; j++) {
                 if (i == x && j == y) continue;
-                if (this.valid(i, j) && this.field[i][j].includes("B"))
+                if (this.valid(i, j) && this.field[i][j].mine)
                     res++;
             }
         }
@@ -129,7 +148,18 @@ export default class App extends Vue {
     padding: 8px;
     border: 1px solid lightgray;
     display: flex;
+    align-items: center;
     justify-content: center;
+}
+
+.input_num {
+    background: white;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+    margin: 0 4px;
+    text-align: center;
+    padding: 8px 0;
+    width: 32px;
 }
 
 .btn {
@@ -143,6 +173,13 @@ export default class App extends Vue {
 .btn:hover {
     background: #ddeeff;
     border: 1px solid #bbddff;
+}
+
+.result {
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    margin: 0 16px;
 }
 
 </style>

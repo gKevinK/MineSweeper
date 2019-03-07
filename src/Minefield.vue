@@ -2,11 +2,10 @@
 <div class="root">
     <div v-for="(row, x) in board" :key="row.id" class="row">
         <div v-for="(cell, y) in row" :key="cell.id" class="square"
-             :class="[ cell[0] === ' ' ? 'cover' : '',
-                       cell[0] === ' ' && cell[1] && cell[1] !== ' ' ? 'd_' + cell[1] : '',
-                       cell[0] !== ' ' ? 'd_' + cell[0] : '' ]"
+             :class="[ [' ', 'C', 'F', 'M'].indexOf(cell.content) != -1 ? 'cover' : '',
+                       cell.content !== ' ' ? 'd_' + cell.content : '' ]"
              @click="onClick(x, y)" @contextmenu.prevent="onRClick(x, y)">
-            {{ content(cell) }}
+            {{ content(cell.content) }}
         </div>
     </div>
 </div>
@@ -15,9 +14,11 @@
 <script lang="ts">
 import { Component, Prop, Vue, Emit } from 'vue-property-decorator';
 
+export type Content = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | " " | "B" | "C" | "F" | "M";
+
 @Component({})
 export default class MineSweeper extends Vue {
-    @Prop({ default: [] }) board!: Array<Array<string>>;
+    @Prop({ default: [] }) board!: Array<Array<{ content: Content }>>;
 
     @Emit('click')
     onClick (x: number, y: number) {
@@ -29,11 +30,10 @@ export default class MineSweeper extends Vue {
         return { x: x, y: y };
     }
 
-    content (c: string) {
-        let char = c[0] === ' ' ? c[1] : c[0];
-        if (['B', 'F', '0'].indexOf(char) != -1) return ' ';
-        if (char === 'M') return '?';
-        return char;
+    content (c: Content) {
+        if (["B", "C", "F", "0"].indexOf(c) != -1) return " ";
+        if (c === 'M') return '?';
+        return c;
     }
 }
 </script>
@@ -72,7 +72,12 @@ export default class MineSweeper extends Vue {
 
 .d_B {
     background: red;
-    background-image: url('../public/mine.svg');
+    background-image: url('assets/mine.svg');
+    background-position: center;
+}
+
+.d_C {
+    background-image: url('assets/mine.svg');
     background-position: center;
 }
 
@@ -113,7 +118,7 @@ export default class MineSweeper extends Vue {
 
 .d_F {
     color: red;
-    background-image: url('../public/flag.svg');
+    background-image: url('assets/flag.svg');
     background-position: center center;
 }
 
