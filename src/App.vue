@@ -1,22 +1,26 @@
 <template>
-    <div id="app" >
+    <div id="app">
         <div class="menu">
             <input v-if="status == 0" class="input_num" v-model.number="input_x">
             <input v-if="status == 0" class="input_num" v-model.number="input_y">
             <input v-if="status == 0" class="input_num" v-model.number="input_mine">
 
-            <div v-if="status == 2" class="result" style="background: red"></div>
-            <div v-if="status == 3" class="result" style="background: green"></div>
-            <button @click="ok" class="btn" style="margin-left: 16px">OK</button>
+            <div class="indicator">{{ restCount }}</div>
+            <div class="result" style="background: yellow; margin: 4px 16px" @click="ok">
+                <div v-if="status == 2" class="result" style="background: red"></div>
+                <div v-if="status == 3" class="result" style="background: green"></div>
+            </div>
+            <div class="indicator">[ time ]</div>
         </div>
         <Minefield style="position: absolute; top: 80px; bottom: 20px; left: 20px; right:20px; "
-                   ref="ui" :board="field" @click="onClick" @rclick="onRClick"/>
+                   ref="ui" :board="field" @click="onClick" @rclick="onRClick" @keyup.i.native="toggleAI"/>
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Minefield, { Content } from './Minefield.vue';
+import * as AI from './AI.ts';
 
 @Component({
     components: {
@@ -33,6 +37,12 @@ export default class App extends Vue {
     private x: number = 9;
     private y: number = 9;
     private mine: number = 10;
+
+    private ai: number = -1;
+
+    get restCount() {
+        return this.mine - this.field.reduce((t1, r) => t1 + r.reduce((t2, c) => t2 + c.content == 'F' ? 1 : 0, 0), 0);
+    }
 
     mounted () {
         this.ok();
@@ -130,6 +140,15 @@ export default class App extends Vue {
         }
         return res;
     }
+
+    toggleAI() {
+        if (this.ai == -1) {
+            this.ai = setInterval(() => AI.Pick([[""]]), 1000);
+        } else {
+            clearInterval(this.ai);
+            this.ai = -1;
+        }
+    }
 }
 </script>
 
@@ -175,11 +194,20 @@ export default class App extends Vue {
     border: 1px solid #bbddff;
 }
 
+.indicator {
+    height: 24px;
+    width: 80px;
+    line-height: 24px;
+    color: red;
+    border: lightgray 1px solid;
+    background: lightgray;
+}
+
 .result {
     height: 24px;
     width: 24px;
+    border: lightgray 1px solid;
     border-radius: 50%;
-    margin: 0 16px;
 }
 
 </style>

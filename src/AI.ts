@@ -1,10 +1,12 @@
-export function Pick (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
-    throw new Error('Not implemented');
+export function Pick (board: Array<Array<string>>) : { x: number, y: number } {
+    console.log("Pick");
+    return { x: 0, y: 0 };
+    // throw new Error('Not implemented');
     
     const flag = flagCells(board);
     const safe = safeCells(board);
     if (safe.length)
-        return safe;
+        return safe[0];
     let { mat, pos } = getMatrix(board);
     let r = solve(mat);
 }

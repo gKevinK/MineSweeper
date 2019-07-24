@@ -33,5 +33,15 @@ module.exports = {
     },
     plugins: [
         new VueLoaderPlugin(),
-    ]
+    ],
+    stats: {
+        all: false,
+        assets: true,
+        builtAt: true,
+        timings: true,
+        modules: false,
+        maxModules: 0,
+        errors: true,
+        warnings: true,
+    }
 }
