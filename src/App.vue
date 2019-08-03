@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <div class="menu">
-            <div class="indicator">{{ restCount }}</div>
+            <div class="indicator" @keyup="toggleAI" @dblclick="toggleAI" tabindex="0">{{ restCount }}</div>
             <div class="result" style="background: yellow; margin: 4px 16px" @click="ok">
                 <div v-if="status == 2" class="result" style="background: red"></div>
                 <div v-if="status == 3" class="result" style="background: green"></div>
@@ -14,14 +14,14 @@
             <input v-if="status == 0" class="input_num" v-model.number="input_mine">
         </div>
         <Minefield style="position: absolute; top: 80px; bottom: 20px; left: 20px; right:20px; "
-                   ref="ui" :board="field" @click="onClick" @rclick="onRClick" @keyup="toggleAI" tabindex="0"/>
+                   ref="ui" :board="field" @click="onClick" @rclick="onRClick"/>
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Minefield, { Content } from './Minefield.vue';
-import * as AI from './AI.ts';
+import * as AI from './AI';
 
 @Component({
     components: {
@@ -156,10 +156,15 @@ export default class App extends Vue {
 
     toggleAI() {
         if (this.i_ai == -1) {
-            console.log("AI on");
-            this.i_ai = setInterval(() => AI.Pick([[""]]), 1000);
+            this.i_ai = setInterval(() => {
+                if (this.status <= 1) {
+                    let t = AI.Pick(this.field.map(r => r.map(c => c.content)));
+                    this.onClick(t);
+                } else {
+                    this.ok();
+                }
+            }, 1000);
         } else {
-            console.log("AI off");
             clearInterval(this.i_ai);
             this.i_ai = -1;
         }

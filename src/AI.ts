@@ -1,14 +1,11 @@
 export function Pick (board: Array<Array<string>>) : { x: number, y: number } {
-    console.log("Pick");
-    return { x: 0, y: 0 };
-    // throw new Error('Not implemented');
-    
-    const flag = flagCells(board);
+    // const flag = flagCells(board);
     const safe = safeCells(board);
     if (safe.length)
-        return safe[0];
-    let { mat, pos } = getMatrix(board);
-    let r = solve(mat);
+        return safe[Math.floor(Math.random() * safe.length)];
+    return { x: 0, y: 0 };
+    // let { mat, pos } = getMatrix(board);
+    // let r = solve(mat);
 }
 
 function flagCells (board: Array<Array<string>>) : Array<Array<number>> {
@@ -17,8 +14,16 @@ function flagCells (board: Array<Array<string>>) : Array<Array<number>> {
 }
 
 function safeCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
-
-    throw new Error('Not implemented');
+    // TODO
+    let res = [];
+    for (let i = 0; i < board.length; ++i) {
+        for (let j = 0; j < board[0].length; ++j) {
+            if (board[i][j] == " ") {
+                res.push({ x: i, y: j });
+            }
+        }
+    }
+    return res;
 }
 
 function getMatrix (board: Array<Array<string>>) : { mat: Array<Array<number>>, pos: Array<{ x: number, y: number }> } {
