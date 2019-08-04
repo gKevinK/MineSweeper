@@ -1,12 +1,12 @@
 <template>
     <div id="app">
         <div class="menu">
-            <div class="indicator" @keyup="toggleAI" @dblclick="toggleAI" tabindex="0">{{ restCount }}</div>
+            <div class="indicator" @keyup="toggleAI" @dblclick="toggleAI" tabindex="0">{{ str(rest) }}</div>
             <div class="result" style="background: yellow; margin: 4px 16px" @click="ok">
                 <div v-if="status == 2" class="result" style="background: red"></div>
                 <div v-if="status == 3" class="result" style="background: green"></div>
             </div>
-            <div class="indicator">{{ time }}</div>
+            <div class="indicator">{{ str(time) }}</div>
         </div>
         <div class="menu" v-if="show_settings">
             <input v-if="status == 0" class="input_num" v-model.number="input_x">
@@ -40,12 +40,19 @@ export default class App extends Vue {
     private y: number = 9;
     private mine: number = 10;
     private time: number = 0;
+    private rest: number = 10;
 
     private i_timer: number = -1;
     private i_ai: number = -1;
 
-    get restCount() {
-        return this.mine - this.field.reduce((t1, r) => t1 + r.reduce((t2, c) => t2 + c.content == 'F' ? 1 : 0, 0), 0);
+    private updateRest() {
+        this.rest = this.mine - this.field.reduce((t1, r) => t1 + r.reduce((t2, c) => t2 + (c.content == 'F' ? 1 : 0), 0), 0);
+    }
+    
+    private str(i: number) {
+        let s = i.toString();
+        while (s.length < 3) s = "0" + s;
+        return s;
     }
 
     mounted () {
@@ -63,6 +70,7 @@ export default class App extends Vue {
             this.show_settings = !this.show_settings;
         }
         this.status = 0;
+        this.rest = this.mine;
         this.time = 0;
         this.field = [...Array(this.x)].map(r => [...Array(this.y)].map(
                      c => ({ content: <Content>" ", mine: false }) ));
@@ -74,6 +82,7 @@ export default class App extends Vue {
             this.status = 3;
             clearInterval(this.i_timer);
         }
+        this.updateRest();
     }
 
     onClick (e: { x: number, y: number }) {
@@ -89,6 +98,7 @@ export default class App extends Vue {
             this.field.map(r => r.map(c => c.content = c.mine ? "C" : c.content));
             this.field[e.x][e.y].content = "B";
             this.status = 2;
+            this.rest = 999;
             clearInterval(this.i_timer);
             return;
         }
@@ -118,6 +128,7 @@ export default class App extends Vue {
         if ([ " ", "F", "M" ].indexOf(cell.content) == -1) return;
         const list: Content[] = [ " ", "F", "M" ];
         cell.content = list[(list.indexOf(cell.content) + 1) % 3];
+        this.updateRest();
     }
 
     private generate(e: { x: number, y: number }) {
