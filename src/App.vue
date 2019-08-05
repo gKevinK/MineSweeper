@@ -8,10 +8,10 @@
             </div>
             <div class="indicator">{{ str(time) }}</div>
         </div>
-        <div class="menu" v-if="show_settings">
-            <input v-if="status == 0" class="input_num" v-model.number="input_x">
-            <input v-if="status == 0" class="input_num" v-model.number="input_y">
-            <input v-if="status == 0" class="input_num" v-model.number="input_mine">
+        <div class="menu" v-if="status == 0 && show_settings">
+            <input class="input_num" v-model.number="input_x">
+            <input class="input_num" v-model.number="input_y">
+            <input class="input_num" v-model.number="input_mine">
         </div>
         <Minefield style="position: absolute; top: 80px; bottom: 20px; left: 20px; right:20px; "
                    ref="ui" :board="field" @click="onClick" @rclick="onRClick"/>
@@ -170,7 +170,8 @@ export default class App extends Vue {
             this.i_ai = setInterval(() => {
                 if (this.status <= 1) {
                     let t = AI.Pick(this.field.map(r => r.map(c => c.content)));
-                    this.onClick(t);
+                    if (t.op == "C") this.onClick(t.p);
+                    else this.onRClick(t.p);
                 } else {
                     this.ok();
                 }
@@ -232,6 +233,7 @@ export default class App extends Vue {
     color: darkred;
     border: lightgray 1px solid;
     background: lightgray;
+    font-family: Menlo, Consolas, "Source Code Pro", Inconsolata, Monaco, "Courier New"
 }
 
 .result {
