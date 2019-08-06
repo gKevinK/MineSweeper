@@ -1,13 +1,14 @@
 export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" } {
     const flag = flagCells(board);
-    if (flag.length)
-        return { p: flag[0], op: "F" };
+    if (flag.length) return { p: flag[0], op: "F" };
+
     const safe = safeCells(board);
-    if (safe.length)
-        return { p: safe[Math.floor(Math.random() * safe.length)], op: "C" };
+    if (safe.length) return { p: safe[0], op: "C" };
+
+    const empty = emptyCells(board);
+    if (empty.length)
+        return { p: empty[Math.floor(Math.random() * empty.length)], op: "C" };
     return { p: { x: 0, y: 0 }, op: "C" };
-    // let { mat, pos } = getMatrix(board);
-    // let r = solve(mat);
 }
 
 function flagCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
@@ -33,7 +34,28 @@ function flagCells (board: Array<Array<string>>) : Array<{ x: number, y: number 
 }
 
 function safeCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
-    // TODO
+    let m = board.length, n = board[0].length;
+    let res = [];
+    for (let i = 0; i < board.length; ++i) {
+        for (let j = 0; j < board[0].length; ++j) {
+            let count = parseInt(board[i][j]);
+            if (isNaN(count) || count == 0) continue;
+            let r = [];
+            for (let c of adjacentCoord(i, j, m, n)) {
+                if (board[c.x][c.y] == " ")
+                    r.push(c);
+                else if (board[c.x][c.y] == "F")
+                    count--;
+            }
+            if (count == 0)
+                for (let c of r)
+                    res.push(c);
+        }
+    }
+    return res;
+}
+
+function emptyCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
     let res = [];
     for (let i = 0; i < board.length; ++i) {
         for (let j = 0; j < board[0].length; ++j) {

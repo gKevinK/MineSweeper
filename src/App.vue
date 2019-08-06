@@ -72,6 +72,7 @@ export default class App extends Vue {
         this.status = 0;
         this.rest = this.mine;
         this.time = 0;
+        if (this.i_timer != -1) clearInterval(this.i_timer);
         this.field = [...Array(this.x)].map(r => [...Array(this.y)].map(
                      c => ({ content: <Content>" ", mine: false }) ));
     }
@@ -167,15 +168,21 @@ export default class App extends Vue {
 
     toggleAI() {
         if (this.i_ai == -1) {
+            let count = 0;
             this.i_ai = setInterval(() => {
                 if (this.status <= 1) {
                     let t = AI.Pick(this.field.map(r => r.map(c => c.content)));
                     if (t.op == "C") this.onClick(t.p);
                     else this.onRClick(t.p);
                 } else {
-                    this.ok();
+                    if (count < 10)
+                        count++;
+                    else {
+                        count = 0;
+                        this.ok();
+                    }
                 }
-            }, 1000);
+            }, 500);
         } else {
             clearInterval(this.i_ai);
             this.i_ai = -1;
