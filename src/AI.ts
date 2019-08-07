@@ -1,9 +1,6 @@
 export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" } {
-    const flag = flagCells(board);
-    if (flag.length) return { p: flag[0], op: "F" };
-
-    const safe = safeCells(board);
-    if (safe.length) return { p: safe[0], op: "C" };
+    const op = simpleCell(board);
+    if (op) return op;
 
     const empty = emptyCells(board);
     if (empty.length)
@@ -11,9 +8,8 @@ export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number
     return { p: { x: 0, y: 0 }, op: "C" };
 }
 
-function flagCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
+function simpleCell (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" } | undefined {
     let m = board.length, n = board[0].length;
-    let res = [];
     for (let i = 0; i < m; ++i) {
         for (let j = 0; j < n; ++j) {
             let count = parseInt(board[i][j]);
@@ -25,34 +21,13 @@ function flagCells (board: Array<Array<string>>) : Array<{ x: number, y: number 
                 else if (board[c.x][c.y] == "F")
                     count--;
             }
-            if (count == r.length)
-                for (let c of r)
-                    res.push(c);
+            if (count == 0 && r.length)
+                return { p: r[0], op: "C" };
+            if (count == r.length && r.length)
+                return { p: r[0], op: "F" };
         }
     }
-    return res;
-}
-
-function safeCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
-    let m = board.length, n = board[0].length;
-    let res = [];
-    for (let i = 0; i < board.length; ++i) {
-        for (let j = 0; j < board[0].length; ++j) {
-            let count = parseInt(board[i][j]);
-            if (isNaN(count) || count == 0) continue;
-            let r = [];
-            for (let c of adjacentCoord(i, j, m, n)) {
-                if (board[c.x][c.y] == " ")
-                    r.push(c);
-                else if (board[c.x][c.y] == "F")
-                    count--;
-            }
-            if (count == 0)
-                for (let c of r)
-                    res.push(c);
-        }
-    }
-    return res;
+    return undefined;
 }
 
 function emptyCells (board: Array<Array<string>>) : Array<{ x: number, y: number }> {
