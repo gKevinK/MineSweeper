@@ -1,10 +1,10 @@
-export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" } {
+export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" | "T" } {
     const op = simpleCell(board);
     if (op) return op;
 
     const empty = emptyCells(board);
     if (empty.length)
-        return { p: empty[Math.floor(Math.random() * empty.length)], op: "C" };
+        return { p: empty[Math.floor(Math.random() * empty.length)], op: "T" };
     return { p: { x: 0, y: 0 }, op: "C" };
 }
 
