@@ -16,7 +16,7 @@ function simpleCell (board: Array<Array<string>>) : { p: { x: number, y: number}
             if (isNaN(count) || count == 0) continue;
             let r = [];
             for (let c of adjacentCoord(i, j, m, n)) {
-                if (board[c.x][c.y] == " ")
+                if (board[c.x][c.y] == " " || board[c.x][c.y] == "?")
                     r.push(c);
                 else if (board[c.x][c.y] == "F")
                     count--;

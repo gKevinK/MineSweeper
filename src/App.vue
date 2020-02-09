@@ -41,10 +41,16 @@ export default class App extends Vue {
     private mine: number = 10;
     private time: number = 0;
     private rest: number = 10;
+    private last_time: number = Date.now();
 
     private i_timer: number = -1;
     private i_ai: number = -1;
-    private wait_count: number = 0;
+
+    RESTART = true;
+    GUESS = true;
+    RESTART_TIME = 5000;
+    GUESS_TIME = 1000;
+    AI_TIME = 100;
 
     private updateRest() {
         this.rest = this.mine - this.field.reduce((t1, r) => t1 + r.reduce((t2, c) => t2 + (c.content == 'F' ? 1 : 0), 0), 0);
@@ -73,6 +79,7 @@ export default class App extends Vue {
         this.status = 0;
         this.rest = this.mine;
         this.time = 0;
+        this.last_time = Date.now();
         if (this.i_timer != -1) clearInterval(this.i_timer);
         this.field = [...Array(this.x)].map(r => [...Array(this.y)].map(
                      c => ({ content: <Content>" ", mine: false }) ));
@@ -96,7 +103,7 @@ export default class App extends Vue {
             this.i_timer = setInterval(() => { this.time += 1 }, 1000);
         }
         if (this.status >= 2) return;
-        this.wait_count = 0;
+        this.last_time = Date.now();
         if (this.field[e.x][e.y].mine) {
             this.field.map(r => r.map(c => c.content = c.mine ? "C" : c.content));
             this.field[e.x][e.y].content = "B";
@@ -127,7 +134,7 @@ export default class App extends Vue {
 
     onRClick (e: { x: number, y: number }) {
         if (this.status != 1) return;
-        this.wait_count = 0;
+        this.last_time = Date.now();
         let cell = this.field[e.x][e.y];
         if ([ " ", "F", "M" ].indexOf(cell.content) == -1) return;
         const list: Content[] = [ " ", "F", "M" ];
@@ -171,29 +178,23 @@ export default class App extends Vue {
 
     toggleAI() {
         if (this.i_ai == -1) {
-            this.wait_count = 0;
             this.i_ai = setInterval(() => {
                 if (this.status <= 1) {
                     let t = AI.Pick(this.field.map(r => r.map(c => c.content)));
                     if (t.op == "C")
                         this.onClick(t.p);
                     else if (t.op == "T") {
-                        // if (this.wait_count < 50) this.wait_count++;
-                        // else {
-                        //     this.wait_count = 0;
-                        //     this.onClick(t.p);
-                        // }
+                        if (this.GUESS && Date.now() - this.last_time > this.GUESS_TIME)  {
+                            this.onClick(t.p);
+                        }
                     } else
                         this.onRClick(t.p);
                 } else {
-                    if (this.wait_count < 10)
-                        this.wait_count++;
-                    else {
-                        this.wait_count = 0;
+                    if (this.RESTART && Date.now() - this.last_time > this.RESTART_TIME) {
                         this.ok();
                     }
                 }
-            }, 500);
+            }, this.AI_TIME);
         } else {
             clearInterval(this.i_ai);
             this.i_ai = -1;
