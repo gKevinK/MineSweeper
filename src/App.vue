@@ -20,7 +20,8 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import Minefield, { Content } from './Minefield.vue';
+import Minefield from './Minefield.vue';
+import { Content } from './Utils';
 import * as AI from './AI';
 
 @Component({
@@ -180,7 +181,7 @@ export default class App extends Vue {
         if (this.i_ai == -1) {
             this.i_ai = setInterval(() => {
                 if (this.status <= 1) {
-                    let t = AI.Pick(this.field.map(r => r.map(c => c.content)));
+                    let t = AI.Pick(this.field.map(r => r.map(c => c.content)), this.mine);
                     if (t.op == "C")
                         this.onClick(t.p);
                     else if (t.op == "T") {

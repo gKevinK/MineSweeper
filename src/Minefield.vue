@@ -13,8 +13,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Emit } from 'vue-property-decorator';
-
-export type Content = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | " " | "B" | "C" | "F" | "M";
+import { Content } from './Utils';
 
 @Component({})
 export default class MineSweeper extends Vue {

@@ -1,6 +1,11 @@
-export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" | "T" } {
-    const op = simpleCell(board);
+import { Content } from './Utils';
+
+export function Pick (board: Array<Array<Content>>, mine: number) : { p: { x: number, y: number}, op: "F" | "C" | "T" } {
+    let op = simpleCell(board);
     if (op) return op;
+
+    // op = probabilitySolve(board, mine);
+    // if (op) return op;
 
     const empty = emptyCells(board);
     if (empty.length)
@@ -8,7 +13,7 @@ export function Pick (board: Array<Array<string>>) : { p: { x: number, y: number
     return { p: { x: 0, y: 0 }, op: "C" };
 }
 
-function simpleCell (board: Array<Array<string>>) : { p: { x: number, y: number}, op: "F" | "C" } | undefined {
+function simpleCell (board: Array<Array<Content>>) : { p: { x: number, y: number}, op: "F" | "C" } | undefined {
     let m = board.length, n = board[0].length;
     for (let i = 0; i < m; ++i) {
         for (let j = 0; j < n; ++j) {
@@ -16,7 +21,7 @@ function simpleCell (board: Array<Array<string>>) : { p: { x: number, y: number}
             if (isNaN(count) || count == 0) continue;
             let r = [];
             for (let c of adjacentCoord(i, j, m, n)) {
-                if (board[c.x][c.y] == " " || board[c.x][c.y] == "?")
+                if (board[c.x][c.y] == " " || board[c.x][c.y] == "M")
                     r.push(c);
                 else if (board[c.x][c.y] == "F")
                     count--;
@@ -42,12 +47,20 @@ function emptyCells (board: Array<Array<string>>) : Array<{ x: number, y: number
     return res;
 }
 
-function getMatrix (board: Array<Array<string>>) : { mat: Array<Array<number>>, pos: Array<{ x: number, y: number }> } {
+function matrixSolve (board: Array<Array<string>>)
+        : { p: { x: number, y: number}, op: "F" | "C" } | undefined {
 
     throw new Error('Not implemented');
 }
 
-function solve (matrix: Array<Array<number>>) : { ps: Array<number>, gs: Array<Array<number>> } {
+function probabilitySolve (board: Array<Array<string>>, mine: number)
+        : { p: { x: number, y: number}, op: "T" | "C" } | undefined {
+    let m = board.length, n = board[0].length;
+    let b = [...Array(m)].map(_ =>
+        [...Array(n)].map(_ =>
+            0
+        )
+    );
 
     throw new Error('Not implemented');
 }
