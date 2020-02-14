@@ -4,8 +4,8 @@ export function Pick (board: Array<Array<Content>>, mine: number) : { p: { x: nu
     let op = simpleCell(board);
     if (op) return op;
 
-    // op = probabilitySolve(board, mine);
-    // if (op) return op;
+    let op2 = probabilitySolve(board, mine);
+    if (op2) return op2;
 
     const empty = emptyCells(board);
     if (empty.length)
@@ -47,22 +47,82 @@ function emptyCells (board: Array<Array<string>>) : Array<{ x: number, y: number
     return res;
 }
 
-function matrixSolve (board: Array<Array<string>>)
+function matrixSolve (board: Array<Array<Content>>)
         : { p: { x: number, y: number}, op: "F" | "C" } | undefined {
 
     throw new Error('Not implemented');
 }
 
-function probabilitySolve (board: Array<Array<string>>, mine: number)
-        : { p: { x: number, y: number}, op: "T" | "C" } | undefined {
+function probabilitySolve (board: Array<Array<Content>>, mine: number)
+        : { p: { x: number, y: number}, op: "F" | "T" | "C" } | undefined {
     let m = board.length, n = board[0].length;
     let b = [...Array(m)].map(_ =>
         [...Array(n)].map(_ =>
-            0
+            0.5
         )
     );
+    let empty = emptyCells(board);
+    for (let c of empty) {
+        b[c.x][c.y] = mine / empty.length;
+    }
+    let constraints = [];
+    for (let i = 0; i < m; ++i) {
+        for (let j = 0; j < n; ++j) {
+            let num = parseInt(board[i][j]);
+            if (!isNaN(num)) {
+                let adjacencies = adjacentCoord(i, j, m, n);
+                let unknownAdjacencies = adjacencies
+                    .filter(c => board[c.x][c.y] == ' ' || board[c.x][c.y] == 'M');
+                if (unknownAdjacencies.length) {
+                    constraints.push({
+                        x: i, y: j, a: unknownAdjacencies,
+                        mine: num - adjacencies.filter(a => board[a.x][a.y] == 'F').length
+                    });
+                }
+            }
+        }
+    }
+    for (let round = 0; round < 20; ++round) {
+        for (let c of constraints) {
+            let sum = c.a.reduce((p, curr) => p + b[curr.x][curr.y], 0);
+            for (let a of c.a) {
+                b[a.x][a.y] += (c.mine - sum) / c.a.length;
+            }
+        }
+        let sum = empty.reduce((p, curr) => p + b[curr.x][curr.y], 0);
+        for (let c of empty) {
+            let t = sigmoid(b[c.x][c.y] + (mine - sum) / empty.length);
+            b[c.x][c.y] = t;
+            // if (t < 0.02) {
+            //     return { p: c, op: "C" };
+            // } else if (t > 0.98) {
+            //     return { p: c, op: "F" };
+            // }
+        }
+    }
+    let min = 1;
+    let p = [{ x: 0, y: 0 }];
+    for (let e of empty) {
+        if (b[e.x][e.y] < 0.02) {
+            return { p: e, op: "C" };
+        } else if (b[e.x][e.y] > 0.98) {
+            return { p: e, op: "F" };
+        }
+        if (b[e.x][e.y] < min - 0.01) {
+            min = b[e.x][e.y];
+            p = [ e ];
+        } else if (b[e.x][e.y] < min + 0.01) {
+            p.push(e);
+        }
+    }
+    return { p: p[Math.floor(Math.random() * p.length)], op: "T" };
+}
 
-    throw new Error('Not implemented');
+function sigmoid (x: number) {
+    if (x > 1) return 1;
+    if (x < 0) return 0;
+    return x;
+    // return 1 / (1 + Math.exp(0.5 - 2 * x));
 }
 
 function adjacentCoord(x: number, y: number, x_lim: number, y_lim: number) : Array<{ x: number, y: number }> {

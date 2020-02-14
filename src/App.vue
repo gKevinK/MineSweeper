@@ -34,12 +34,12 @@ export default class App extends Vue {
     private status: number = 0;
     private show_settings: boolean = false;
     private field: Array<Array<{ content: Content, mine: boolean }>> = [];
-    private input_x: number = 9;
-    private input_y: number = 9;
-    private input_mine: number = 10;
-    private x: number = 9;
-    private y: number = 9;
-    private mine: number = 10;
+    private input_x: number = 16;
+    private input_y: number = 30;
+    private input_mine: number = 99;
+    private x: number = this.input_x;
+    private y: number = this.input_y;
+    private mine: number = this.input_mine;
     private time: number = 0;
     private rest: number = 10;
     private last_time: number = Date.now();
@@ -50,7 +50,7 @@ export default class App extends Vue {
     RESTART = true;
     GUESS = true;
     RESTART_TIME = 5000;
-    GUESS_TIME = 1000;
+    GUESS_TIME = 3000;
     AI_TIME = 100;
 
     private updateRest() {
@@ -181,7 +181,7 @@ export default class App extends Vue {
         if (this.i_ai == -1) {
             this.i_ai = setInterval(() => {
                 if (this.status <= 1) {
-                    let t = AI.Pick(this.field.map(r => r.map(c => c.content)), this.mine);
+                    let t = AI.Pick(this.field.map(r => r.map(c => c.content)), this.rest);
                     if (t.op == "C")
                         this.onClick(t.p);
                     else if (t.op == "T") {
