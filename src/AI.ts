@@ -65,6 +65,7 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
     for (let c of empty) {
         b[c.x][c.y] = mine / empty.length;
     }
+
     let constraints = [];
     for (let i = 0; i < m; ++i) {
         for (let j = 0; j < n; ++j) {
@@ -82,7 +83,8 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
             }
         }
     }
-    for (let round = 0; round < 20; ++round) {
+
+    for (let round = 0; round < 40; ++round) {
         for (let c of constraints) {
             let sum = c.a.reduce((p, curr) => p + b[curr.x][curr.y], 0);
             for (let a of c.a) {
@@ -91,17 +93,20 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
         }
         let sum = empty.reduce((p, curr) => p + b[curr.x][curr.y], 0);
         for (let c of empty) {
-            let t = sigmoid(b[c.x][c.y] + (mine - sum) / empty.length);
+            let t = limit(b[c.x][c.y] + (mine - sum) / empty.length);
             b[c.x][c.y] = t;
-            // if (t < 0.02) {
-            //     return { p: c, op: "C" };
-            // } else if (t > 0.98) {
-            //     return { p: c, op: "F" };
-            // }
+            if (round >= 10) {
+                if (t < 0.02) {
+                    return { p: c, op: "C" };
+                } else if (t > 0.98) {
+                    return { p: c, op: "F" };
+                }
+            }
         }
     }
+
     let min = 1;
-    let p = [{ x: 0, y: 0 }];
+    let ps = [{ x: 0, y: 0 }];
     for (let e of empty) {
         if (b[e.x][e.y] < 0.02) {
             return { p: e, op: "C" };
@@ -110,15 +115,21 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
         }
         if (b[e.x][e.y] < min - 0.01) {
             min = b[e.x][e.y];
-            p = [ e ];
+            ps = [ e ];
         } else if (b[e.x][e.y] < min + 0.01) {
-            p.push(e);
+            ps.push(e);
         }
     }
-    return { p: p[Math.floor(Math.random() * p.length)], op: "T" };
+    for (let p of ps) {
+        if (p.x == 0 && p.y == 0) return { p: { x: 0, y: 0 }, op: "T" };
+        if (p.x == 0 && p.y == n - 1) return { p: { x: 0, y: n - 1 }, op: "T" };
+        if (p.x == m - 1 && p.y == 0) return { p: { x: m - 1, y: 0 }, op: "T" };
+        if (p.x == m - 1 && p.y == n - 1) return { p: { x: m - 1, y: n - 1 }, op: "T" };
+    }
+    return { p: ps[Math.floor(Math.random() * ps.length)], op: "T" };
 }
 
-function sigmoid (x: number) {
+function limit (x: number) {
     if (x > 1) return 1;
     if (x < 0) return 0;
     return x;
