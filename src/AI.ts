@@ -84,7 +84,7 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
         }
     }
 
-    for (let round = 0; round < 40; ++round) {
+    for (let round = 0; round < 50; ++round) {
         for (let c of constraints) {
             let sum = c.a.reduce((p, curr) => p + b[curr.x][curr.y], 0);
             for (let a of c.a) {
@@ -95,7 +95,7 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
         for (let c of empty) {
             let t = limit(b[c.x][c.y] + (mine - sum) / empty.length);
             b[c.x][c.y] = t;
-            if (round >= 10) {
+            if (round >= 20) {
                 if (t < 0.02) {
                     return { p: c, op: "C" };
                 } else if (t > 0.98) {
@@ -108,11 +108,6 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
     let min = 1;
     let ps = [{ x: 0, y: 0 }];
     for (let e of empty) {
-        if (b[e.x][e.y] < 0.02) {
-            return { p: e, op: "C" };
-        } else if (b[e.x][e.y] > 0.98) {
-            return { p: e, op: "F" };
-        }
         if (b[e.x][e.y] < min - 0.01) {
             min = b[e.x][e.y];
             ps = [ e ];
@@ -121,15 +116,20 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
         }
     }
     for (let p of ps) {
-        if (p.x == 0 && p.y == 0) return { p: { x: 0, y: 0 }, op: "T" };
-        if (p.x == 0 && p.y == n - 1) return { p: { x: 0, y: n - 1 }, op: "T" };
-        if (p.x == m - 1 && p.y == 0) return { p: { x: m - 1, y: 0 }, op: "T" };
-        if (p.x == m - 1 && p.y == n - 1) return { p: { x: m - 1, y: n - 1 }, op: "T" };
+        if (p.x == Math.floor(m / 2 - 0.5) && p.y ==  Math.floor(n / 2 - 0.5))
+            return { p, op: "T" };
+    }
+    for (let p of ps) {
+        if (p.x == 0 && p.y == 0) return { p, op: "T" };
+        if (p.x == 0 && p.y == n - 1) return { p, op: "T" };
+        if (p.x == m - 1 && p.y == 0) return { p, op: "T" };
+        if (p.x == m - 1 && p.y == n - 1) return { p, op: "T" };
     }
     return { p: ps[Math.floor(Math.random() * ps.length)], op: "T" };
 }
 
 function limit (x: number) {
+    x = 0.5 + (x - 0.5) / 1.01;
     if (x > 1) return 1;
     if (x < 0) return 0;
     return x;
