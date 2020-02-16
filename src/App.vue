@@ -13,8 +13,9 @@
             <input class="input_num" v-model.number="input_y">
             <input class="input_num" v-model.number="input_mine">
         </div>
-        <Minefield style="position: absolute; top: 80px; bottom: 20px; left: 20px; right:20px; "
+        <Minefield style="position: absolute; top: 80px; bottom: 0; left: 0; right: 0;"
                    ref="ui" :board="field" @click="onClick" @rclick="onRClick"/>
+        <div class="win_rate">{{ num_win }} / {{ num_all }} = {{ num_all > 0 ? (num_win / num_all * 100).toFixed() : "-" }} %</div>
     </div>
 </template>
 
@@ -40,9 +41,12 @@ export default class App extends Vue {
     private x: number = this.input_x;
     private y: number = this.input_y;
     private mine: number = this.input_mine;
+    private start_time: number = Date.now();
     private time: number = 0;
-    private rest: number = 10;
+    private rest: number = this.mine;
     private last_time: number = Date.now();
+    private num_win = 0;
+    private num_all = 0;
 
     private i_timer: number = -1;
     private i_ai: number = -1;
@@ -50,7 +54,7 @@ export default class App extends Vue {
     RESTART = true;
     GUESS = true;
     RESTART_TIME = 5000;
-    GUESS_TIME = 3000;
+    GUESS_TIME = 1000;
     AI_TIME = 100;
 
     private updateRest() {
@@ -90,9 +94,13 @@ export default class App extends Vue {
         let ok = !this.field.some(r => r.some(c => !c.mine && [ " ", "F", "M" ].indexOf(c.content) != -1));
         if (ok) {
             this.status = 3;
+            this.rest = 0;
+            this.num_win++;
+            this.num_all++;
             clearInterval(this.i_timer);
+        } else {
+            this.updateRest();
         }
-        this.updateRest();
     }
 
     onClick (e: { x: number, y: number }) {
@@ -100,8 +108,11 @@ export default class App extends Vue {
             this.generate(e);
             // console.log(this.field);
             this.status = 1;
+            this.start_time = Date.now();
             this.time = 0;
-            this.i_timer = setInterval(() => { this.time += 1 }, 1000);
+            this.i_timer = setInterval(() => {
+                this.time = Math.round((Date.now() - this.start_time) / 1000)
+            }, 100);
         }
         if (this.status >= 2) return;
         this.last_time = Date.now();
@@ -109,6 +120,7 @@ export default class App extends Vue {
             this.field.map(r => r.map(c => c.content = c.mine ? "C" : c.content));
             this.field[e.x][e.y].content = "B";
             this.status = 2;
+            this.num_all++;
             this.rest = 999;
             clearInterval(this.i_timer);
             return;
@@ -177,19 +189,27 @@ export default class App extends Vue {
         return res;
     }
 
+    last_is_t = false;
+
     toggleAI() {
         if (this.i_ai == -1) {
             this.i_ai = setInterval(() => {
                 if (this.status <= 1) {
+                    if (this.last_is_t && Date.now() < this.last_time + this.GUESS_TIME) return;
+                    
                     let t = AI.Pick(this.field.map(r => r.map(c => c.content)), this.rest);
                     if (t.op == "C")
                         this.onClick(t.p);
                     else if (t.op == "T") {
                         if (this.GUESS && Date.now() - this.last_time > this.GUESS_TIME)  {
                             this.onClick(t.p);
+                        } else {
+                            this.last_is_t = true;
+                            return;
                         }
                     } else
                         this.onRClick(t.p);
+                    this.last_is_t = false;
                 } else {
                     if (this.RESTART && Date.now() - this.last_time > this.RESTART_TIME) {
                         this.ok();
@@ -263,4 +283,9 @@ export default class App extends Vue {
     border-radius: 50%;
 }
 
+.win_rate {
+    position: fixed;
+    top: 4px;
+    right: 4px;
+}
 </style>
