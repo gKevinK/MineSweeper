@@ -54,7 +54,7 @@ export default class App extends Vue {
     RESTART = true;
     GUESS = true;
     RESTART_TIME = 5000;
-    GUESS_TIME = 1000;
+    GUESS_TIME = 500;
     AI_TIME = 100;
 
     private updateRest() {
@@ -95,6 +95,7 @@ export default class App extends Vue {
         if (ok) {
             this.status = 3;
             this.rest = 0;
+            this.field.forEach(r => r.forEach(c => { if (c.mine) c.content = "F"; }));
             this.num_win++;
             this.num_all++;
             clearInterval(this.i_timer);
@@ -156,20 +157,22 @@ export default class App extends Vue {
     }
 
     private generate(e: { x: number, y: number }) {
-        const total = this.x * this.y - 1, mine = this.mine;
-        let res: number[] = [];
-        for (let i = 0; i < total; i++) {
-            if (res.length < mine)
-                res.push(i);
-            else if (Math.random() < mine / (i + 1))
-                res[Math.floor(Math.random() * res.length)] = i;
+        const mine = this.mine;
+        let res: { x: number, y: number }[] = [];
+        let num = 0;
+        for (let i = 0; i < this.x; i++) {
+            for (let j = 0; j < this.y; j++) {
+                if (Math.abs(i - e.x) <= 1 && Math.abs(j - e.y) <= 1) continue;
+                ++num;
+                if (res.length < mine)
+                    res.push({ x: i, y: j });
+                else if (Math.random() < mine / num)
+                    res[Math.floor(Math.random() * res.length)] = { x: i, y: j };
+            }
         }
-        for (let i of res) {
-            const x = Math.floor(i / this.y), y = i % this.y;
-            this.field[x][y].mine = true;
+        for (let r of res) {
+            this.field[r.x][r.y].mine = true;
         }
-        this.field[this.x - 1][this.y - 1].mine = this.field[e.x][e.y].mine;
-        this.field[e.x][e.y].mine = false;
     }
 
     private valid (x: number, y: number ) {
@@ -201,7 +204,7 @@ export default class App extends Vue {
                     if (t.op == "C")
                         this.onClick(t.p);
                     else if (t.op == "T") {
-                        if (this.GUESS && Date.now() - this.last_time > this.GUESS_TIME)  {
+                        if (this.GUESS && Date.now() >= this.last_time + this.GUESS_TIME)  {
                             this.onClick(t.p);
                         } else {
                             this.last_is_t = true;

@@ -84,18 +84,18 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
         }
     }
 
-    for (let round = 0; round < 50; ++round) {
+    for (let round = 0; round < 100; ++round) {
         for (let c of constraints) {
             let sum = c.a.reduce((p, curr) => p + b[curr.x][curr.y], 0);
             for (let a of c.a) {
-                b[a.x][a.y] += (c.mine - sum) / c.a.length;
+                b[a.x][a.y] += (c.mine - sum) / c.a.length * 1.1;
             }
         }
         let sum = empty.reduce((p, curr) => p + b[curr.x][curr.y], 0);
         for (let c of empty) {
-            let t = limit(b[c.x][c.y] + (mine - sum) / empty.length);
+            let t = limit(b[c.x][c.y] + (mine - sum) / empty.length * 1.1);
             b[c.x][c.y] = t;
-            if (round >= 20) {
+            if (round >= 50) {
                 if (t < 0.02) {
                     return { p: c, op: "C" };
                 } else if (t > 0.98) {
@@ -129,7 +129,7 @@ function probabilitySolve (board: Array<Array<Content>>, mine: number)
 }
 
 function limit (x: number) {
-    x = 0.5 + (x - 0.5) / 1.01;
+    x = 0.5 + (x - 0.5) / 1.005;
     if (x > 1) return 1;
     if (x < 0) return 0;
     return x;
